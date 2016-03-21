@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:descendantFocusability="beforeDescendants"
+    android:focusableInTouchMode="true">
+
+    <TextView
+        android:id="@+id/textView_manual"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_margin="32dp"
+        android:text="@string/manual_mode"
+        android:textAllCaps="true"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:textColor="@android:color/black" />
+
+    <LinearLayout
+        android:id="@+id/linearLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/textView_manual"
+        android:layout_centerHorizontal="true"
+        android:background="@color/colorBackground"
+        android:orientation="horizontal">
+
+        <ToggleButton
+            android:id="@+id/button_vibrate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="8dp"
+            android:layout_weight="1"
+            android:background="@android:color/transparent"
+            android:checked="true"
+            android:drawableTop="@drawable/button_vibrate"
+            android:textColor="@drawable/button_vibrate"
+            android:textOff="@string/vibration"
+            android:textOn="@string/vibration" />
+
+
+        <ToggleButton
+            android:id="@+id/button_flash"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="8dp"
+            android:layout_weight="1"
+            android:background="@android:color/transparent"
+            android:checked="true"
+            android:drawableTop="@drawable/button_flash"
+            android:textColor="@drawable/button_flash"
+            android:textOff="@string/flash"
+            android:textOn="@string/flash" />
+
+        <ToggleButton
+            android:id="@+id/button_sound"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="8dp"
+            android:layout_weight="1"
+            android:background="@android:color/transparent"
+            android:checked="true"
+            android:drawableTop="@drawable/button_sound"
+            android:textColor="@drawable/button_sound"
+            android:textOff="@string/sound"
+            android:textOn="@string/sound" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/textView_setBPM"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/linearLayout"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="32dp"
+        android:text="@string/set_bpm"
+        android:textAllCaps="true"
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/set_manual"
+        android:layout_below="@+id/textView_setBPM"
+        android:gravity="center_horizontal">
+
+        <EditText
+            android:id="@+id/editText_BPM"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:singleLine="true"
+            android:textSize="32sp"
+            android:inputType="number"/>
+
+        <TextView
+            android:id="@+id/textView_bpm"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/bpm"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:textColor="@android:color/black"
+            android:layout_marginLeft="8dp" />
+    </LinearLayout>
+
+
+    <LinearLayout
+        android:id="@+id/linearLayout2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/set_manual"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"
+        android:layout_marginBottom="8dp"
+        android:layout_marginTop="8dp"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/button_less"
+            style="?android:attr/buttonStyleSmall"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@android:color/transparent"
+            android:text="-"
+            android:textSize="@dimen/abc_text_size_large_material" />
+
+        <SeekBar
+            android:id="@+id/seekBar"
+            android:layout_width="500px"
+            android:layout_height="wrap_content"
+            android:layout_weight="5"
+            android:max="200"
+            android:progress="100"
+            android:background="@drawable/seek_bar_progress"
+            android:thumb="@drawable/seek_bar_thumb"
+            android:progressDrawable="@android:color/transparent"/>
+
+        <Button
+            android:id="@+id/button_more"
+            style="?android:attr/buttonStyleSmall"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@android:color/transparent"
+            android:text="+" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/linearLayout2"
+        android:layout_centerHorizontal="true"
+        android:text="@string/indicator"
+        android:textAllCaps="true"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:textColor="@android:color/black" />
+
+    <ToggleButton
+        android:id="@+id/indicator"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/textView"
+        android:layout_centerHorizontal="true"
+        android:layout_margin="16dp"
+        android:background="@android:color/transparent"
+        android:drawableTop="@drawable/button_indicator"
+        android:textOn=""
+        android:textOff=""/>
+
+    <ToggleButton
+        android:id="@+id/button_start"
+        style="?android:attr/buttonStyleSmall"
+        android:layout_width="160dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/indicator"
+        android:layout_centerHorizontal="true"
+        android:layout_margin="16dp"
+        android:background="@color/colorBackground"
+        android:checked="false"
+        android:textColor="@android:color/white"
+        android:textOff="@string/start"
+        android:textOn="@string/stop" />
+
+
+</RelativeLayout>
