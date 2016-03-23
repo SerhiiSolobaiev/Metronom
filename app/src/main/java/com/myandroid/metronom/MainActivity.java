@@ -3,6 +3,9 @@ package com.myandroid.metronom;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
+/**
+ * Main activity of the program
+ */
 public class MainActivity extends AppCompatActivity {
 
     @Override
@@ -10,7 +13,9 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        //add fragment
+        /*
+         * Add fragment to Activity
+         */
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
                     .add(R.id.container, new MainFragment())

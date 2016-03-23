@@ -1,6 +1,5 @@
 package com.myandroid.metronom;
 
-import android.app.IntentService;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -19,17 +18,18 @@ import java.util.TimerTask;
 public class MetronomService extends Service {
 
     private static final String LOG_TAG = MetronomService.class.getSimpleName();
-
     public static final String METRONOM_SERVICE = "com.myandroid.metronom.service.METRONOM_SERVICE";
-    private static Camera cam;
+
+    private static Camera cam = null;
     private static Vibrator v;
     private static MediaPlayer mediaPlayer;
+
     private Timer timer;
 
     @Override
     public void onCreate() {
         super.onCreate();
-        Log.v(LOG_TAG,"MetronomService created");
+        Log.v(LOG_TAG, "MetronomService created");
     }
 
     @Override
@@ -40,25 +40,31 @@ public class MetronomService extends Service {
         final boolean[] parameters = intent.getBooleanArrayExtra("parameters");
         Log.v(LOG_TAG, "frequency = " + frequency);
 
-        v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-        //Vibrator has it's own pattern
-        //vibrate for pattern[1] milliseconds
-        //sleep for pattern[2] milliseconds
-        final long[] pattern = {0, frequency*10, frequency*10};//for better displaying
-        if (parameters[0]) {
-            v.vibrate(pattern,0);
-        }
-
         mediaPlayer = MediaPlayer.create(this, R.raw.sounds_cooked);
         mediaPlayer.setLooping(true);//if sound ends
 
+        v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+        /*
+         Vibrator has it's own pattern:
+         delay for 0(in this case);
+         vibrate for pattern[1] milliseconds;
+         sleep for pattern[2] milliseconds.
+         */
+        final long[] pattern = {0, frequency * 10, frequency * 10};//for better displaying
+        if (parameters[0]) {
+            v.vibrate(pattern, 0);
+        }
+
         timer = new Timer();
+
         try {
             if (getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH)) {
                 cam = Camera.open();
                 timer.schedule(new TimerTask() {
                     @Override
                     public void run() {
+                        updateIndicator(); //send message to activity to update indicator
+
                         if (parameters[1]) {
                             if (getPackageManager().hasSystemFeature(
                                     PackageManager.FEATURE_CAMERA_FLASH)) {
@@ -72,9 +78,8 @@ public class MetronomService extends Service {
                                     cam.setParameters(p);
                                     cam.startPreview();
                                 }
-                            }
-                            else{
-                                Log.v(LOG_TAG,"device hasn't FEATURE_CAMERA_FLASH");
+                            } else {
+                                Log.v(LOG_TAG, "device hasn't FEATURE_CAMERA_FLASH");
                             }
                         }
                         if (parameters[2]) {
@@ -85,25 +90,29 @@ public class MetronomService extends Service {
                                 mediaPlayer.start();
                             }
                         }
-                        updateIndicator();
                     }
-                }, 0, frequency*10); //for better displaying
+                }, 0, frequency * 10); //for better displaying
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return super.onStartCommand(intent, flags, startId);
+        return START_NOT_STICKY;
     }
 
-    //massage to activity to update indicator on UI thread
-    private void updateIndicator(){
+    /**
+     * Send message to activity to update indicator on UI thread
+     */
+    private void updateIndicator() {
         Intent intent = new Intent("updateIndicatorOnUI");
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+        Log.v(LOG_TAG, "Message to activity sent");
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
+
+        /*close or cancel all consumed resources*/
         if (timer != null) {
             timer.cancel();
         }

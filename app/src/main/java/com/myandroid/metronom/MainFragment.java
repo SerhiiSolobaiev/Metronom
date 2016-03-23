@@ -20,11 +20,20 @@ import android.widget.EditText;
 import android.widget.SeekBar;
 import android.widget.ToggleButton;
 
+/**
+ * Main Fragment of the program
+ */
 public class MainFragment extends Fragment {
 
     private static final String LOG_TAG = MainFragment.class.getSimpleName();
     private static final String APP_PREFERENCES = "MainPreferences";
     private static final String APP_PREFERENCES_STATE_START_BUTTON = "buttonStart";
+    private static final String APP_PREFERENCES_STATE_VIBRATE_BUTTON = "buttonVibration";
+    private static final String APP_PREFERENCES_STATE_FLASH_BUTTON = "buttonFlash";
+    private static final String APP_PREFERENCES_STATE_SOUND_BUTTON = "buttonSound";
+    private static final String APP_PREFERENCES_STATE_PROGRESS = "seekbarProgress";
+    private static final String APP_PREFERENCES_STATE_INDICATOR = "indicator";
+    private static final int ADD_VALUE_TO_PROGRESS = 1; //value that adding to progress for one click
 
     private ToggleButton buttonStart;
     private ToggleButton buttonVibration;
@@ -37,7 +46,6 @@ public class MainFragment extends Fragment {
     private ToggleButton indicator;
 
     private SharedPreferences sharedpreferences;
-    private boolean isIndicator; //for showing changes of indicator
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -50,6 +58,30 @@ public class MainFragment extends Fragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_main, container, false);
 
+        initViews(view);
+        initSharedPreferences();
+
+        /*start or stop service listener*/
+        buttonStart.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    startService();
+                } else {
+                    stopService();
+                }
+            }
+        });
+
+        addOnParametersClickListeners();
+        return view;
+    }
+
+    /**
+     * Init views of the fragment
+     *
+     * @param view Root view
+     */
+    private void initViews(View view) {
         buttonStart = (ToggleButton) view.findViewById(R.id.button_start);
         buttonVibration = (ToggleButton) view.findViewById(R.id.button_vibrate);
         buttonFlash = (ToggleButton) view.findViewById(R.id.button_flash);
@@ -59,28 +91,30 @@ public class MainFragment extends Fragment {
         buttonLess = (Button) view.findViewById(R.id.button_less);
         buttonMore = (Button) view.findViewById(R.id.button_more);
         indicator = (ToggleButton) view.findViewById(R.id.indicator);
-
-        editTextBPM.setText(seekBar.getProgress() + "");
-        buttonStart.setChecked(
-                sharedpreferences.getBoolean(APP_PREFERENCES_STATE_START_BUTTON, true));
-        buttonStart.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                SharedPreferences.Editor editor = sharedpreferences.edit();
-                if (isChecked) {
-                    startService();
-                    editor.putBoolean(APP_PREFERENCES_STATE_START_BUTTON, true);
-                } else {
-                    stopService();
-                    editor.putBoolean(APP_PREFERENCES_STATE_START_BUTTON, false);
-                }
-                editor.apply();
-            }
-        });
-
-        addOnParametersClickListeners();
-        return view;
     }
 
+    /**
+     * Restore initiate states from sharedPreferences
+     */
+    private void initSharedPreferences() {
+        buttonStart.setChecked(
+                sharedpreferences.getBoolean(APP_PREFERENCES_STATE_START_BUTTON, false));
+        buttonVibration.setChecked(
+                sharedpreferences.getBoolean(APP_PREFERENCES_STATE_VIBRATE_BUTTON, true));
+        buttonFlash.setChecked(
+                sharedpreferences.getBoolean(APP_PREFERENCES_STATE_FLASH_BUTTON, true));
+        buttonSound.setChecked(
+                sharedpreferences.getBoolean(APP_PREFERENCES_STATE_SOUND_BUTTON, true));
+        seekBar.setProgress(
+                sharedpreferences.getInt(APP_PREFERENCES_STATE_PROGRESS, 100));
+        indicator.setChecked(
+                sharedpreferences.getBoolean(APP_PREFERENCES_STATE_INDICATOR, false));
+        editTextBPM.setText(seekBar.getProgress() + ""); //set current progress to editText
+    }
+
+    /**
+     * Listeners for changing states of views
+     */
     private void addOnParametersClickListeners() {
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
@@ -104,7 +138,7 @@ public class MainFragment extends Fragment {
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                if (editTextBPM.getText().toString().length() != 0)
+                if (s.length() != 0)
                     seekBar.setProgress(Integer.valueOf(editTextBPM.getText().toString()));
             }
 
@@ -116,50 +150,79 @@ public class MainFragment extends Fragment {
         buttonLess.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                seekBar.setProgress(seekBar.getProgress() - 1);
+                seekBar.setProgress(seekBar.getProgress() - ADD_VALUE_TO_PROGRESS);
             }
         });
 
         buttonMore.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                seekBar.setProgress(seekBar.getProgress() + 1);
+                seekBar.setProgress(seekBar.getProgress() + ADD_VALUE_TO_PROGRESS);
             }
         });
     }
 
+    /**
+     * Start service that makes all work
+     */
     private void startService() {
         final boolean[] parameters = {buttonVibration.isChecked(),
                 buttonFlash.isChecked(), buttonSound.isChecked()};
-        LocalBroadcastManager.getInstance(getContext()).registerReceiver(messageFromService,
-                new IntentFilter("updateIndicatorOnUI"));
 
         getActivity().startService(new Intent(MetronomService.METRONOM_SERVICE)
                 .putExtra("parameters", parameters)
                 .putExtra("frequency", seekBar.getProgress()));
-        isIndicator = indicator.isChecked();
+
         Log.v(LOG_TAG, "service started");
     }
 
+    /**
+     * Stop service that runs in background
+     */
     private void stopService() {
         getActivity().stopService(new Intent(MetronomService.METRONOM_SERVICE));
-        LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(messageFromService);
         Log.v(LOG_TAG, "service stopped");
 
         indicator.setChecked(false);
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        LocalBroadcastManager.getInstance(getContext()).registerReceiver(messageFromService,
+                new IntentFilter("updateIndicatorOnUI"));
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(messageFromService);
+    }
+
+    /**
+     * BroadcastReceiver that receives messages from service
+     */
     private BroadcastReceiver messageFromService = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            if (!isIndicator) {
-                if (indicator.isChecked()) {
-                    indicator.setChecked(false);
-                } else {
-                    indicator.setChecked(true);
-                }
+            if (indicator.isChecked()) {
+                indicator.setChecked(false);
+            } else {
+                indicator.setChecked(true);
             }
             Log.v(LOG_TAG, "messageFromService received");
         }
     };
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        SharedPreferences.Editor editor = sharedpreferences.edit();
+        editor.putBoolean(APP_PREFERENCES_STATE_VIBRATE_BUTTON, buttonVibration.isChecked());
+        editor.putBoolean(APP_PREFERENCES_STATE_FLASH_BUTTON, buttonFlash.isChecked());
+        editor.putBoolean(APP_PREFERENCES_STATE_SOUND_BUTTON, buttonSound.isChecked());
+        editor.putInt(APP_PREFERENCES_STATE_PROGRESS, seekBar.getProgress());
+        editor.putBoolean(APP_PREFERENCES_STATE_START_BUTTON, buttonStart.isChecked());
+        editor.apply();
+    }
 }
